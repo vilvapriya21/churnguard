@@ -1,0 +1,106 @@
+[project]
+name = "churnguard"
+version = "0.1.0"
+description = "End-to-end customer churn prediction: data checks, versioned pipeline, tracked models and a containerised API."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "fastapi>=0.162.7",
+    "joblib>=1.6.0",
+    "mlflow>=3.18.0",
+    "pandas>=3.1.1",
+    "pandera>=0.36.0",
+    "pydantic-settings>=2.16.3",
+    "pyyaml>=6.0.3",
+    "scikit-learn>=1.9.1",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/churnguard"]
+
+# --------------------------------------------------------------------------- #
+# Ruff: linting and formatting
+# --------------------------------------------------------------------------- #
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",  # pycodestyle
+    "F",       # pyflakes
+    "I",       # import order
+    "N",       # naming
+    "UP",      # modern syntax
+    "B",       # bugbear
+    "D",       # docstrings
+    "ANN",     # type annotations
+    "S",       # security (bandit)
+    "C4",      # comprehensions
+    "SIM",     # simplifications
+    "PTH",     # pathlib over os.path
+    "T20",     # no print statements
+    "RUF",     # ruff-specific
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# Tests use bare asserts and do not need Args/Returns sections.
+"tests/**" = ["S101", "D103", "D100", "D104"]
+
+# --------------------------------------------------------------------------- #
+# Mypy: static type checking
+# --------------------------------------------------------------------------- #
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src", "tests"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+# These libraries do not ship type information.
+module = ["sklearn.*", "joblib.*", "mlflow.*"]
+ignore_missing_imports = true
+
+# --------------------------------------------------------------------------- #
+# Pytest and coverage
+# --------------------------------------------------------------------------- #
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --cov=churnguard --cov-report=term-missing --cov-report=xml"
+markers = [
+    "integration: tests that run several pipeline steps together",
+]
+
+[tool.coverage.run]
+source = ["churnguard"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+exclude_also = [
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[dependency-groups]
+dev = [
+    "dvc>=3.67.1",
+    "httpx>=0.28.1",
+    "mypy>=2.4.1",
+    "pandas-stubs>=3.1.0.261029",
+    "pre-commit>=4.7.0",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.5",
+    "types-pyyaml>=6.0.12.20261113",
+]
