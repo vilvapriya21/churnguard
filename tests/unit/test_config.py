@@ -78,7 +78,7 @@ def test_load_params_project_file_is_valid() -> None:
     """The committed params.yaml passes validation."""
     params = load_params()
 
-    assert params.base.target_column == "Churn"
+    assert params.base.random_seed == 42
     assert params.validate_.psi_warn < params.validate_.psi_fail
 
 

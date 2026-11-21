@@ -56,14 +56,20 @@ class Environment(StrEnum):
 # Settings (configs/<env>.yaml)
 # --------------------------------------------------------------------------- #
 class PathsSettings(BaseModel):
-    """File-system locations, relative to the project root."""
+    """File-system locations, relative to the project root.
+
+    Each pipeline stage reads and writes exactly these files, which is also
+    what ``dvc.yaml`` lists as stage dependencies and outputs (Task 5).
+    """
 
     model_config = ConfigDict(frozen=True)
 
     raw_data: Path
-    interim_dir: Path
-    processed_dir: Path
-    models_dir: Path
+    interim_train: Path
+    interim_scoring: Path
+    processed_train: Path
+    processed_test: Path
+    model_file: Path
     reports_dir: Path
 
 
@@ -96,6 +102,7 @@ class Settings(BaseSettings):
 
     env: Environment
     log_level: str = Field(pattern=r"^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
+    dataset_url: str
     paths: PathsSettings
     mlflow: MlflowSettings
 
@@ -152,8 +159,6 @@ class BaseParams(_StrictModel):
     """Parameters shared by every stage."""
 
     random_seed: int
-    target_column: str
-    id_column: str
 
 
 class IngestParams(_StrictModel):
@@ -191,6 +196,7 @@ class TrainParams(_StrictModel):
     The values are passed straight to scikit-learn, so their types vary.
     """
 
+    cv_folds: int = Field(ge=2)
     decision_threshold: float = Field(gt=0, lt=1)
     models: dict[str, dict[str, Any]] = Field(min_length=1)
 

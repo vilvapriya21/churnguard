@@ -3,11 +3,15 @@
 env: staging
 log_level: INFO
 
+dataset_url: https://www.kaggle.com/datasets/blastchar/telco-customer-churn
+
 paths:
   raw_data: data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv
-  interim_dir: data/interim
-  processed_dir: data/processed
-  models_dir: models
+  interim_train: data/interim/train.csv
+  interim_scoring: data/interim/scoring.csv
+  processed_train: data/processed/train.csv
+  processed_test: data/processed/test.csv
+  model_file: models/model.joblib
   reports_dir: reports
 
 mlflow:

@@ -5,8 +5,6 @@
 
 base:
   random_seed: 42
-  target_column: Churn
-  id_column: customerID
 
 ingest:
   # Share of raw rows held back as "new customers to score later".
@@ -23,6 +21,8 @@ validate:
   psi_fail: 0.25
 
 train:
+  # Folds used to compare candidate models on the training data only.
+  cv_folds: 5
   # Probability above which a customer is flagged as "will churn".
   decision_threshold: 0.5
   models:
