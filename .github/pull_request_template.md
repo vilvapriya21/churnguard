@@ -1,6 +1,6 @@
 ## What does this change?
 
-<!-- One or two sentences. Link the task, e.g. "Task 4: data quality checks". -->
+<!-- One or two sentences: what changed and why. -->
 
 ## How was it tested?
 
