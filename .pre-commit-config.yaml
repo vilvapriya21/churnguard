@@ -1,0 +1,40 @@
+# Checks that run automatically on the staged files before every `git commit`.
+# If a hook fails (or fixes a file), the commit is stopped: review the change,
+# `git add` the fixed files and commit again.
+#
+# One-time setup per clone (inside the activated .venv):
+#   pre-commit install
+# Run every hook on the whole repo by hand:
+#   pre-commit run --all-files
+#
+# Hook versions are pinned with `rev` for the same reason the libraries are
+# pinned in uv.lock: everyone gets identical checks. The ruff rev matches the
+# ruff version in uv.lock, so the hook and CI agree.
+
+repos:
+  # General file hygiene.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]  # data and models belong in DVC, not Git
+      - id: detect-private-key
+
+  # Linting and formatting.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.5
+    hooks:
+      - id: ruff-check
+        args: ["--fix"]
+      - id: ruff-format
+
+  # Secret scanning: blocks commits that contain passwords, tokens or keys.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
