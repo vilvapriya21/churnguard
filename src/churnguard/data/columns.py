@@ -9,6 +9,7 @@ Exported API:
     POSITIVE_LABEL: Value of ``TARGET_COLUMN`` that means "customer churned".
     NUMERIC_COLUMNS, CATEGORICAL_COLUMNS: Raw input columns by kind.
     RAW_FEATURE_COLUMNS: All raw columns the model may use as input.
+    MAX_TENURE_MONTHS: Longest tenure in the dataset (the contract's upper bound).
 """
 
 from typing import Final
@@ -21,6 +22,8 @@ TENURE: Final = "tenure"
 MONTHLY_CHARGES: Final = "MonthlyCharges"
 TOTAL_CHARGES: Final = "TotalCharges"
 SENIOR_CITIZEN: Final = "SeniorCitizen"
+
+MAX_TENURE_MONTHS: Final = 72
 
 NUMERIC_COLUMNS: Final[tuple[str, ...]] = (
     SENIOR_CITIZEN,
