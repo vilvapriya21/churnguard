@@ -27,7 +27,7 @@ than calling one who would have stayed, so recall is the primary measure.
 |---|---|---|
 | Recall on the churn class (held-out test set) | at least 0.70 | `register.py` quality bar |
 | ROC-AUC (held-out test set) | at least 0.80 | `register.py` quality bar |
-| Reproducibility | `dvc pull` and `dvc repro` on a fresh clone give the same metrics | Task 5 reproducibility test |
+| Reproducibility | `dvc pull` and `dvc repro` on a fresh clone give the same metrics | Fresh-clone reproducibility check |
 | Traceability | Every registered model links to a Git commit, a DVC data version and an MLflow run | MLflow run tags |
 | Test coverage | at least 80% | CI `test` job |
 

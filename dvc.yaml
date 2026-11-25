@@ -1,0 +1,93 @@
+# ChurnGuard pipeline. Run everything with `dvc repro`; DVC re-runs a stage
+# only when one of its deps (files) or params (keys in params.yaml) changed.
+#
+#   ingest -> validate -> featurize -> train -> evaluate -> register
+#
+# deps:    files the stage reads (code and data)
+# params:  keys from params.yaml the stage uses
+# outs:    files the stage creates (cached by DVC, pushed to the remote)
+# metrics: the test scores, compared across versions with `dvc metrics diff`
+# cache: false = small file kept in Git instead of the DVC cache
+
+stages:
+  ingest:
+    cmd: python -m churnguard.data.ingest
+    deps:
+      - data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv
+      - src/churnguard/data/ingest.py
+    params:
+      - base.random_seed
+      - ingest
+    outs:
+      - data/interim/train.csv
+      - data/interim/scoring.csv
+
+  validate:
+    cmd: python -m churnguard.data.validate
+    deps:
+      - data/interim/train.csv
+      - data/interim/scoring.csv
+      - src/churnguard/data/validate.py
+      - src/churnguard/data/contracts.py
+      - src/churnguard/data/drift.py
+    params:
+      - validate
+    outs:
+      - reports/data_quality.json:
+          cache: false
+
+  featurize:
+    cmd: python -m churnguard.features.build_features
+    deps:
+      - data/interim/train.csv
+      # Depending on the report makes featurize wait for validate, so the
+      # pipeline stops at the data quality gate before any model is built.
+      - reports/data_quality.json
+      - src/churnguard/features/build_features.py
+    params:
+      - base.random_seed
+      - split
+    outs:
+      - data/processed/train.csv
+      - data/processed/test.csv
+
+  train:
+    cmd: python -m churnguard.models.train
+    deps:
+      - data/processed/train.csv
+      - src/churnguard/features/build_features.py
+      - src/churnguard/models/train.py
+    params:
+      - base.random_seed
+      - train
+    outs:
+      - models/model.joblib
+      - reports/train_summary.json:
+          cache: false
+
+  evaluate:
+    cmd: python -m churnguard.models.evaluate
+    deps:
+      - models/model.joblib
+      - data/processed/test.csv
+      - reports/train_summary.json
+      - src/churnguard/models/evaluate.py
+    params:
+      - train.decision_threshold
+    metrics:
+      - reports/metrics.json:
+          cache: false
+    outs:
+      - reports/figures
+
+  register:
+    cmd: python -m churnguard.models.register
+    deps:
+      - reports/metrics.json
+      - reports/train_summary.json
+      - src/churnguard/models/register.py
+    params:
+      - register
+    outs:
+      - reports/registration.json:
+          cache: false

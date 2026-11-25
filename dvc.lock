@@ -1,0 +1,192 @@
+schema: '2.0'
+stages:
+  ingest:
+    cmd: python -m churnguard.data.ingest
+    deps:
+    - path: data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv
+      hash: md5
+      md5: 0f9de68e012bd3aed5fa7cdc9fc421af
+      size: 977501
+    - path: src/churnguard/data/ingest.py
+      hash: md5
+      md5: e74b8c03c36dcddbd7d7a960f0f35c4d
+      size: 5698
+    params:
+      params.yaml:
+        base.random_seed: 42
+        ingest:
+          scoring_size: 0.2
+    outs:
+    - path: data/interim/scoring.csv
+      hash: md5
+      md5: c202bffb1d64bdc698592b06fe12d18b
+      size: 196232
+    - path: data/interim/train.csv
+      hash: md5
+      md5: fb972d0c7d20e77b8be8bf15d22b2836
+      size: 782984
+  validate:
+    cmd: python -m churnguard.data.validate
+    deps:
+    - path: data/interim/scoring.csv
+      hash: md5
+      md5: c202bffb1d64bdc698592b06fe12d18b
+      size: 196232
+    - path: data/interim/train.csv
+      hash: md5
+      md5: fb972d0c7d20e77b8be8bf15d22b2836
+      size: 782984
+    - path: src/churnguard/data/contracts.py
+      hash: md5
+      md5: b3efe41ec45a3f780240807f611a736d
+      size: 5519
+    - path: src/churnguard/data/drift.py
+      hash: md5
+      md5: f4d3a5a363ee95eaa8829fdbe7663e0a
+      size: 5940
+    - path: src/churnguard/data/validate.py
+      hash: md5
+      md5: d33dcaedc220ef38e33160e172ad3eb4
+      size: 5861
+    params:
+      params.yaml:
+        validate:
+          max_missing_fraction: 0.05
+          psi_bins: 10
+          psi_warn: 0.1
+          psi_fail: 0.25
+    outs:
+    - path: reports/data_quality.json
+      hash: md5
+      md5: beba50f013f97713b1d0f6c8dfc4f093
+      size: 3177
+  featurize:
+    cmd: python -m churnguard.features.build_features
+    deps:
+    - path: data/interim/train.csv
+      hash: md5
+      md5: fb972d0c7d20e77b8be8bf15d22b2836
+      size: 782984
+    - path: reports/data_quality.json
+      hash: md5
+      md5: beba50f013f97713b1d0f6c8dfc4f093
+      size: 3177
+    - path: src/churnguard/features/build_features.py
+      hash: md5
+      md5: c1649041d12582b9af4e346ccb5930de
+      size: 7253
+    params:
+      params.yaml:
+        base.random_seed: 42
+        split:
+          test_size: 0.2
+    outs:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: b85483416308a2e4ba6708e033ce0250
+      size: 164546
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 7762fdbb187c95901a9b0fea2693341e
+      size: 655739
+  train:
+    cmd: python -m churnguard.models.train
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 7762fdbb187c95901a9b0fea2693341e
+      size: 655739
+    - path: src/churnguard/features/build_features.py
+      hash: md5
+      md5: c1649041d12582b9af4e346ccb5930de
+      size: 7253
+    - path: src/churnguard/models/train.py
+      hash: md5
+      md5: b04d39b816c3bb1c83df8b9213a59978
+      size: 13231
+    params:
+      params.yaml:
+        base.random_seed: 42
+        train:
+          cv_folds: 5
+          decision_threshold: 0.5
+          models:
+            logistic_regression:
+              C: 1.0
+              max_iter: 1000
+              class_weight: balanced
+            random_forest:
+              n_estimators: 300
+              max_depth: 8
+              min_samples_leaf: 5
+              class_weight: balanced
+            gradient_boosting:
+              n_estimators: 200
+              learning_rate: 0.05
+              max_depth: 3
+    outs:
+    - path: models/model.joblib
+      hash: md5
+      md5: 0ac93cabab2b0dafc76095d95738d52a
+      size: 6396635
+    - path: reports/train_summary.json
+      hash: md5
+      md5: c5fb407924e6d54b3ce344b270300e2a
+      size: 908
+  evaluate:
+    cmd: python -m churnguard.models.evaluate
+    deps:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: b85483416308a2e4ba6708e033ce0250
+      size: 164546
+    - path: models/model.joblib
+      hash: md5
+      md5: 0ac93cabab2b0dafc76095d95738d52a
+      size: 6396635
+    - path: reports/train_summary.json
+      hash: md5
+      md5: c5fb407924e6d54b3ce344b270300e2a
+      size: 908
+    - path: src/churnguard/models/evaluate.py
+      hash: md5
+      md5: 9b2f4ddf238deffc2cea0e52c6f4f23a
+      size: 8338
+    params:
+      params.yaml:
+        train.decision_threshold: 0.5
+    outs:
+    - path: reports/figures
+      hash: md5
+      md5: 07ea9a076f036e22ac34a796e93a692f.dir
+      size: 60527
+      nfiles: 2
+    - path: reports/metrics.json
+      hash: md5
+      md5: 4ed5280f4206444eb398cc5a7c9fb3fe
+      size: 172
+  register:
+    cmd: python -m churnguard.models.register
+    deps:
+    - path: reports/metrics.json
+      hash: md5
+      md5: 4ed5280f4206444eb398cc5a7c9fb3fe
+      size: 172
+    - path: reports/train_summary.json
+      hash: md5
+      md5: c5fb407924e6d54b3ce344b270300e2a
+      size: 908
+    - path: src/churnguard/models/register.py
+      hash: md5
+      md5: 1f243216648db244fdbdd4a8f815056d
+      size: 9600
+    params:
+      params.yaml:
+        register:
+          min_roc_auc: 0.8
+          min_recall: 0.7
+    outs:
+    - path: reports/registration.json
+      hash: md5
+      md5: f2e67f740564772ff5f7f99bcee647cb
+      size: 712

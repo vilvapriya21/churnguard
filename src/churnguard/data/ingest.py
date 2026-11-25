@@ -9,7 +9,7 @@ model sees the data:
   customers who have not paid a bill yet. Their true total is therefore 0, so
   the blank is filled with ``0.0`` rather than a guessed average. Any blank on a
   customer with ``tenure > 0`` is left missing on purpose, so the missing-value
-  gate in the validate stage (Task 4) can catch it.
+  gate in the validate stage can catch it.
 
 The cleaned data is then split, stratified on the target, into a training file
 and a "scoring" file that stands in for new customers arriving later.
