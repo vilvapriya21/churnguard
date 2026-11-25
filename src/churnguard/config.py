@@ -59,7 +59,7 @@ class PathsSettings(BaseModel):
     """File-system locations, relative to the project root.
 
     Each pipeline stage reads and writes exactly these files, which is also
-    what ``dvc.yaml`` lists as stage dependencies and outputs (Task 5).
+    what ``dvc.yaml`` lists as stage dependencies and outputs.
     """
 
     model_config = ConfigDict(frozen=True)

@@ -1,6 +1,6 @@
 # Experiment parameters: the "knobs" that change model results.
 # DVC watches this file, so changing a value here re-runs only the
-# pipeline stages that depend on it (Task 5). Environment settings
+# pipeline stages that depend on it. Environment settings
 # such as paths and log levels live in configs/ instead.
 
 base:
