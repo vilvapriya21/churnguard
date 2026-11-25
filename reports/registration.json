@@ -1,0 +1,24 @@
+{
+  "passed_quality_bar": true,
+  "registered_version": "2",
+  "promoted_to_champion": false,
+  "champion_version": "1",
+  "reasons": [
+    "Passed quality bar; registered as version 2 (challenger)",
+    "Does not beat champion v1 on roc_auc (0.8493 <= 0.8493); kept as challenger"
+  ],
+  "metrics": {
+    "accuracy": 0.7622005323868678,
+    "precision": 0.5353075170842825,
+    "recall": 0.7859531772575251,
+    "f1": 0.6368563685636857,
+    "roc_auc": 0.8492842486226229
+  },
+  "previous_champion_metrics": {
+    "accuracy": 0.7622005323868678,
+    "precision": 0.5353075170842825,
+    "recall": 0.7859531772575251,
+    "f1": 0.6368563685636857,
+    "roc_auc": 0.8492842486226229
+  }
+}

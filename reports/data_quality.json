@@ -1,0 +1,138 @@
+{
+  "passed": true,
+  "row_counts": {
+    "train": 5634,
+    "scoring": 1409
+  },
+  "failed_checks": [],
+  "warnings": [],
+  "checks": {
+    "schema_train": {
+      "passed": true,
+      "warnings": [],
+      "details": {
+        "failure_count": 0
+      }
+    },
+    "schema_scoring": {
+      "passed": true,
+      "warnings": [],
+      "details": {
+        "failure_count": 0
+      }
+    },
+    "missing_train": {
+      "passed": true,
+      "warnings": [],
+      "details": {
+        "max_missing_fraction": 0.05,
+        "columns_with_blanks": {},
+        "columns_over_limit": []
+      }
+    },
+    "missing_scoring": {
+      "passed": true,
+      "warnings": [],
+      "details": {
+        "max_missing_fraction": 0.05,
+        "columns_with_blanks": {},
+        "columns_over_limit": []
+      }
+    },
+    "drift": {
+      "passed": true,
+      "warnings": [],
+      "details": {
+        "warn_limit": 0.1,
+        "fail_limit": 0.25,
+        "failed_columns": [],
+        "columns": {
+          "SeniorCitizen": {
+            "psi": 0.000244,
+            "status": "ok"
+          },
+          "tenure": {
+            "psi": 0.006653,
+            "status": "ok"
+          },
+          "MonthlyCharges": {
+            "psi": 0.012492,
+            "status": "ok"
+          },
+          "TotalCharges": {
+            "psi": 0.007587,
+            "status": "ok"
+          },
+          "gender": {
+            "psi": 0.000367,
+            "status": "ok"
+          },
+          "Partner": {
+            "psi": 0.000182,
+            "status": "ok"
+          },
+          "Dependents": {
+            "psi": 0.000295,
+            "status": "ok"
+          },
+          "PhoneService": {
+            "psi": 0.001683,
+            "status": "ok"
+          },
+          "MultipleLines": {
+            "psi": 0.003021,
+            "status": "ok"
+          },
+          "InternetService": {
+            "psi": 0.000236,
+            "status": "ok"
+          },
+          "OnlineSecurity": {
+            "psi": 0.000338,
+            "status": "ok"
+          },
+          "OnlineBackup": {
+            "psi": 0.004434,
+            "status": "ok"
+          },
+          "DeviceProtection": {
+            "psi": 0.000445,
+            "status": "ok"
+          },
+          "TechSupport": {
+            "psi": 0.000777,
+            "status": "ok"
+          },
+          "StreamingTV": {
+            "psi": 0.002794,
+            "status": "ok"
+          },
+          "StreamingMovies": {
+            "psi": 0.001028,
+            "status": "ok"
+          },
+          "Contract": {
+            "psi": 0.000144,
+            "status": "ok"
+          },
+          "PaperlessBilling": {
+            "psi": 0.000101,
+            "status": "ok"
+          },
+          "PaymentMethod": {
+            "psi": 0.000404,
+            "status": "ok"
+          }
+        }
+      }
+    },
+    "leakage": {
+      "passed": true,
+      "warnings": [],
+      "details": {
+        "overlapping_customer_ids": 0,
+        "forbidden_columns_in_features": []
+      }
+    }
+  }
+}
