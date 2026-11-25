@@ -14,7 +14,11 @@ paths:
   processed_train: data/processed/train.csv
   processed_test: data/processed/test.csv
   model_file: models/model.joblib
-  reports_dir: reports
+  data_quality_report: reports/data_quality.json
+  train_summary: reports/train_summary.json
+  metrics_report: reports/metrics.json
+  figures_dir: reports/figures
+  registration_report: reports/registration.json
 
 mlflow:
   tracking_uri: sqlite:///mlflow.db

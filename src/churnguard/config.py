@@ -70,7 +70,11 @@ class PathsSettings(BaseModel):
     processed_train: Path
     processed_test: Path
     model_file: Path
-    reports_dir: Path
+    data_quality_report: Path
+    train_summary: Path
+    metrics_report: Path
+    figures_dir: Path
+    registration_report: Path
 
 
 class MlflowSettings(BaseModel):
