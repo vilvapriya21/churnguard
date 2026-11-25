@@ -6,14 +6,17 @@ raw dataset (including blank ``TotalCharges`` for new customers). This keeps
 tests fast, independent of DVC, and runnable in CI without downloads.
 """
 
+from collections.abc import Iterator
 from pathlib import Path
 
+import mlflow
 import numpy as np
 import pandas as pd
 import pytest
 
-from churnguard.config import Params, load_params
+from churnguard.config import MlflowSettings, Params, TrainParams, load_params
 from churnguard.data.ingest import clean_raw_data
+from churnguard.features.build_features import split_and_featurize
 
 YES_NO = ("Yes", "No")
 INTERNET_SERVICE = ("DSL", "Fiber optic", "No")
@@ -110,3 +113,47 @@ def raw_csv(tmp_path: Path, raw_customers: pd.DataFrame) -> Path:
     path.parent.mkdir()
     raw_customers.to_csv(path, index=False)
     return path
+
+
+@pytest.fixture
+def processed_split(
+    clean_customers: pd.DataFrame, params: Params
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Featurised train and test rows from the fake customers."""
+    return split_and_featurize(clean_customers, params.split, random_seed=0)
+
+
+@pytest.fixture
+def fast_train_params(params: Params) -> TrainParams:
+    """Training parameters shrunk so MLflow tests run in seconds."""
+    return params.train.model_copy(
+        update={
+            "cv_folds": 2,
+            "models": {
+                "logistic_regression": params.train.models["logistic_regression"],
+                "random_forest": {"n_estimators": 20, "max_depth": 4, "class_weight": "balanced"},
+            },
+        }
+    )
+
+
+@pytest.fixture
+def mlflow_settings(tmp_path: Path) -> Iterator[MlflowSettings]:
+    """A private, throw-away MLflow tracking store and registry for one test.
+
+    Uses a SQLite file and an artifact folder inside the test's temporary
+    directory, so tests never touch the real MLflow server.
+    """
+    tracking_uri = f"sqlite:///{(tmp_path / 'mlflow.db').as_posix()}"
+    experiment_name = "churnguard-test"
+    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.create_experiment(experiment_name, artifact_location=(tmp_path / "mlartifacts").as_uri())
+    mlflow.set_experiment(experiment_name)
+    yield MlflowSettings(
+        tracking_uri=tracking_uri,
+        experiment_name=experiment_name,
+        registered_model_name="churnguard-test",
+        champion_alias="champion",
+        challenger_alias="challenger",
+    )
+    mlflow.end_run()

@@ -5,26 +5,30 @@ from pathlib import Path
 import joblib
 import pandas as pd
 import pytest
+from mlflow.data.pandas_dataset import from_pandas
 from sklearn.pipeline import Pipeline
 
-from churnguard.config import Params
+from churnguard.config import MlflowSettings, Params, TrainParams
 from churnguard.data.columns import TARGET_COLUMN
 from churnguard.exceptions import ModelNotFoundError
-from churnguard.features.build_features import FEATURE_COLUMNS, split_and_featurize
+from churnguard.features.build_features import FEATURE_COLUMNS
 from churnguard.models.predict import (
     DECISION_COLUMN,
     PROBABILITY_COLUMN,
+    load_champion,
     load_model,
     predict_churn,
     predict_proba,
+    predict_proba_serving,
 )
-from churnguard.models.train import build_model_pipeline
+from churnguard.models.register import register_model
+from churnguard.models.train import build_model_pipeline, train_and_track
 
 
 @pytest.fixture
-def fitted_model(clean_customers: pd.DataFrame, params: Params) -> Pipeline:
+def fitted_model(processed_split: tuple[pd.DataFrame, pd.DataFrame], params: Params) -> Pipeline:
     """A logistic regression pipeline fitted on the fake customers."""
-    train, _ = split_and_featurize(clean_customers, params.split, random_seed=0)
+    train, _ = processed_split
     model = build_model_pipeline(
         "logistic_regression", params.train.models["logistic_regression"], random_seed=0
     )
@@ -98,3 +102,38 @@ def test_predict_proba_saved_and_reloaded_model_gives_same_output(
     after = predict_proba(load_model(path), clean_customers)
 
     assert (before == after).all()
+
+
+def test_load_champion_without_registered_model_raises_model_not_found(
+    mlflow_settings: MlflowSettings,
+) -> None:
+    """An empty registry gives a clear ModelNotFoundError, not an MLflow crash."""
+    with pytest.raises(ModelNotFoundError, match="@champion"):
+        load_champion(mlflow_settings)
+
+
+def test_load_champion_serves_registered_model_with_signature_check(
+    processed_split: tuple[pd.DataFrame, pd.DataFrame],
+    fast_train_params: TrainParams,
+    mlflow_settings: MlflowSettings,
+    params: Params,
+    clean_customers: pd.DataFrame,
+) -> None:
+    """The champion loads from the registry and scores raw customer rows."""
+    train, _ = processed_split
+    dataset = from_pandas(train, targets=TARGET_COLUMN, name="processed_train")
+    result = train_and_track(
+        train[list(FEATURE_COLUMNS)], train[TARGET_COLUMN], fast_train_params, 0, dataset, {}
+    )
+    good = {"roc_auc": 0.9, "recall": 0.8}
+    register_model(
+        result.best.run_id, result.best.model_uri, good, mlflow_settings, params.register_
+    )
+
+    serving = load_champion(mlflow_settings)
+    probabilities = predict_proba_serving(serving, clean_customers.head(3))
+
+    assert serving.version == "1"
+    assert serving.threshold == fast_train_params.decision_threshold
+    assert probabilities.shape == (3,)
+    assert ((probabilities >= 0) & (probabilities <= 1)).all()

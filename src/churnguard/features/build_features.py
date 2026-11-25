@@ -73,8 +73,10 @@ def build_features(customers: pd.DataFrame) -> pd.DataFrame:
     """
     features = customers.reindex(columns=list(RAW_FEATURE_COLUMNS))
 
+    # Every numeric input is a float, whether it arrives as 2 or 2.0 or is
+    # missing, so the model signature has one stable type per column.
     for column in NUMERIC_COLUMNS:
-        features[column] = pd.to_numeric(features[column], errors="coerce")
+        features[column] = pd.to_numeric(features[column], errors="coerce").astype(float)
     for column in CATEGORICAL_COLUMNS:
         features[column] = features[column].astype(object)
 

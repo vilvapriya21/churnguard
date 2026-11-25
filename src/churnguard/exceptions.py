@@ -9,6 +9,7 @@ Exported API:
     ConfigError: Settings or parameter files are missing or invalid.
     DataValidationError: Data broke the schema contract or quality gates.
     ModelNotFoundError: No model is available to serve predictions.
+    QualityBarError: A trained model is not good enough to register.
 """
 
 
@@ -26,3 +27,7 @@ class DataValidationError(ChurnGuardError):
 
 class ModelNotFoundError(ChurnGuardError):
     """Raised when no trained or registered model can be loaded."""
+
+
+class QualityBarError(ChurnGuardError):
+    """Raised when a model misses the minimum scores needed for registration."""
